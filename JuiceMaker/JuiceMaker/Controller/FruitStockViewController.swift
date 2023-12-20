@@ -8,29 +8,25 @@
 import UIKit
 
 
-class FruitStockViewController: UIViewController {
+class FruitStockViewController: FruitStoreViewController {
     @IBOutlet weak var strawberryLabel: UILabel!
     @IBOutlet weak var bananaLabel: UILabel!
     @IBOutlet weak var pineappleLabel: UILabel!
     @IBOutlet weak var kiwiLabel: UILabel!
     @IBOutlet weak var mangoLabel: UILabel!
     
-    @IBOutlet weak var strawberryStepper: UIStepper!
-    @IBOutlet weak var bananaStepper: UIStepper!
-    @IBOutlet weak var pineappleStepper: UIStepper!
-    @IBOutlet weak var kiwiStepper: UIStepper!
-    @IBOutlet weak var mangoStepper: UIStepper!
+    @IBOutlet weak var strawberryStepper: FruitStockStepper!
+    @IBOutlet weak var bananaStepper: FruitStockStepper!
+    @IBOutlet weak var pineappleStepper: FruitStockStepper!
+    @IBOutlet weak var kiwiStepper: FruitStockStepper!
+    @IBOutlet weak var mangoStepper: FruitStockStepper!
     
-    private var labelDict: Dictionary<UIStepper, UILabel> = [:]
-    private var stepperDict: Dictionary<UIStepper, Fruit> = [:]
-    var fruitCount: ((Fruit) -> Int)?
-    var updateFruitStore: ((Dictionary<Fruit, Int>) -> Void)?
-    
+    private var stepperDict: Dictionary<FruitStockStepper, Fruit> = [:]    
     override func viewDidLoad() {
         super.viewDidLoad()
-        setStepperDict()
         setLabelDict()
-        labelDict.forEach(setLabelText)
+        setStepperDict()
+        configureFruitStoreUI()
     }
     
 }
@@ -40,25 +36,24 @@ extension FruitStockViewController {
         dismissFruitStockViewController()
     }
     
-    @IBAction func stepperTapped(_ sender: UIStepper) {
-        guard let label = labelDict[sender] else {
+    @IBAction func stepperTapped(_ sender: FruitStockStepper) {
+        guard let fruit = stepperDict[sender] else {
             return
         }
-        setLabelText(stepper: sender, label: label)
+        
+        sender.tappedSign == .plus 
+            ? fruitStore.warehouse(fruit: fruit, count: 1)
+            : fruitStore.release(fruit: fruit, count: 1)
+        
+        configureFruitStoreUI()
     }
     
     func dismissFruitStockViewController() {
-        let store: Dictionary<Fruit, Int> = stepperDict.reduce(into: [:]) {
-            (fruitStore, keyValuePair) in
-            let (stepper, fruit) = keyValuePair
-            fruitStore[fruit] = Int(stepper.value)
-        }
-        updateFruitStore?(store)
         self.dismiss(animated: false)
     }
     
     func setLabelDict() {
-        labelDict = [strawberryStepper: strawberryLabel, bananaStepper: bananaLabel, pineappleStepper: pineappleLabel, kiwiStepper: kiwiLabel, mangoStepper: mangoLabel]
+        labelDict = [strawberryLabel: .strawberry, bananaLabel: .banana, pineappleLabel: .pineapple, kiwiLabel: .kiwi, mangoLabel: .mango]
     }
     
     func setStepperDict() {
@@ -66,13 +61,11 @@ extension FruitStockViewController {
         stepperDict.forEach(setStepper)
     }
     
-    func setStepper(stepper: UIStepper, fruit: Fruit) {
+    func setStepper(stepper: FruitStockStepper, fruit: Fruit) {
         stepper.minimumValue = fruit.minimum
         stepper.maximumValue = fruit.maximum
-        stepper.value = Double(fruitCount?(fruit) ?? 0)
+        stepper.value = Double(fruitStore.fruitCount(fruit: fruit))
+        stepper.oldValue = Double(fruitStore.fruitCount(fruit: fruit))
     }
     
-    func setLabelText(stepper: UIStepper, label: UILabel) {
-        label.text = String(Int(stepper.value))
-    }
 }

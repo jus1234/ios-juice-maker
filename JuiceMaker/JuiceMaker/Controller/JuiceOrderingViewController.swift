@@ -6,7 +6,7 @@
 
 import UIKit
 
-class JuiceOrderingViewController: UIViewController {
+class JuiceOrderingViewController: FruitStoreViewController {
     
     @IBOutlet weak var strawberryLabel: UILabel!
     @IBOutlet weak var bananaLabel: UILabel!
@@ -14,22 +14,18 @@ class JuiceOrderingViewController: UIViewController {
     @IBOutlet weak var kiwiLabel: UILabel!
     @IBOutlet weak var mangoLabel: UILabel!
     
-    private var fruitStore: FruitStore
-    private var labelDict: Dictionary<UILabel, Fruit>
     private var juiceMaker: JuiceMaker
-    private let juiceMenu: [Juice]
+    private let juiceMenu: [Juice] = Juice.allCases
     
     required init?(coder aDecoder: NSCoder) {
-        self.fruitStore = FruitStore()
-        self.juiceMaker = JuiceMaker(fruitStore: fruitStore)
-        self.labelDict = [:]
-        self.juiceMenu = Juice.allCases
+        self.juiceMaker = JuiceMaker()
         super.init(coder: aDecoder)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setLabelDict()
+        configureFruitStoreUI()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -46,11 +42,7 @@ extension JuiceOrderingViewController {
     
     func presentFruitStockViewController() {
         guard let secondVC = storyboard?.instantiateViewController(withIdentifier: FruitStockViewController.className) as? FruitStockViewController else { return }
-        
         secondVC.modalPresentationStyle = .fullScreen
-        secondVC.fruitCount = fruitStore.fruitCount
-        secondVC.updateFruitStore = fruitStore.updateFruitStore
-        
         self.present(secondVC, animated: false)
     }
     
@@ -65,9 +57,5 @@ extension JuiceOrderingViewController {
         }
         makeAlert(title: "알림", message: "\(juice.name) 나왔습니다! 맛있게 드세요!")
         configureFruitStoreUI()
-    }
-    
-    func configureFruitStoreUI() {
-        labelDict.forEach { $0.text = fruitStore.fruitCount(fruit: $1).description }
     }
 }
